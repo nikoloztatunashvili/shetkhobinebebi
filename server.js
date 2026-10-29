@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
             authStrategy: new LocalAuth(),
             puppeteer: {
                 executablePath: '/usr/bin/google-chrome-stable',
-                headless: true,
+                headless: true, // დააბრუნეთ 'true' - ხანდახან 'new' პრობლემურია ძველ ვერსიებზე
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -38,8 +38,14 @@ io.on('connection', (socket) => {
                     '--no-first-run',
                     '--no-zygote',
                     '--single-process',
-                    '--disable-gpu'
-                ]
+                    '--disable-gpu',
+                    '--user-data-dir=/tmp/puppeteer_user_data', // მითითებულია კონკრეტული ფოლდერი
+                    '--disable-software-rasterizer', // ამცირებს CPU დატვირთვას
+                    '--mute-audio',
+                    '--disable-extensions'
+                ],
+                // დაამატეთ ეს ხაზი, რათა თავიდან ავიცილოთ timeout ერორები ნელი ჩატვირთვისას
+                timeout: 60000 
             }
         });
 
