@@ -8,7 +8,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// ვეუბნებით, რომ ვებგვერდის ფაილები 'public' ფოლდერიდან წაიკითხოს
 app.use(express.static('public'));
 
 let client;
@@ -17,7 +16,6 @@ let isConnected = false;
 io.on('connection', (socket) => {
     console.log('UI დაუკავშირდა სერვერს');
 
-    // ავტორიზაციის დაწყება
     socket.on('start_auth', () => {
         if (isConnected) {
             socket.emit('status', '✅ უკვე დაკავშირებულია!');
@@ -26,13 +24,16 @@ io.on('connection', (socket) => {
 
         if (client) client.destroy();
 
+        // Render-ისთვის აუცილებელი Puppeteer პარამეტრები
         client = new Client({
-            authStrategy: new LocalAuth()
+            authStrategy: new LocalAuth(),
+            puppeteer: {
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            }
         });
 
         client.on('qr', async (qr) => {
             try {
-                // ვქმნით QR კოდის Base64 სურათს, რომ პირდაპირ HTML-ში ვაჩვენოთ
                 const qrImageBase64 = await qrcode.toDataURL(qr);
                 socket.emit('qr', qrImageBase64);
                 socket.emit('status', 'ელოდება დასკანერებას...');
@@ -55,7 +56,6 @@ io.on('connection', (socket) => {
         socket.emit('status', 'WhatsApp კლიენტი ირთვება...');
     });
 
-    // შეტყობინებების გაგზავნა
     socket.on('send_messages', async (data) => {
         const { numbers, text } = data;
         
@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
         socket.emit('log', '⏳ დაგზავნა იწყება...');
 
         for (let number of numbers) {
-            let cleanNumber = number.toString().replace(/\D/g, ''); // მხოლოდ ციფრები
+            let cleanNumber = number.toString().replace(/\D/g, ''); 
             if (!cleanNumber) continue;
             
             const chatId = `${cleanNumber}@c.us`;
@@ -79,7 +79,6 @@ io.on('connection', (socket) => {
                 socket.emit('log', `❌ შეცდომა (${cleanNumber}): ${error.message}`);
             }
             
-            // 3-წამიანი დაყოვნება ბლოკისგან თავის ასარიდებლად
             await new Promise(resolve => setTimeout(resolve, 3000));
         }
         
@@ -87,6 +86,8 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log('სერვერი გაეშვა მისამართზე: http://localhost:3000');
+// პორტის და ჰოსტის დინამიური მინიჭება Render-ისთვის
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`სერვერი გაეშვა პორტზე: ${PORT}`);
 });
