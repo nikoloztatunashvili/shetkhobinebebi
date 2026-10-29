@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 3000
 
 # აპლიკაციის გაშვება მეხსიერების ოპტიმიზაციით
-CMD [ "node", "--max-old-space-size=256", "server.js" ]
+CMD [ "node", "server.js" ]

@@ -28,8 +28,7 @@ io.on('connection', (socket) => {
         client = new Client({
             authStrategy: new LocalAuth(),
             puppeteer: {
-                executablePath: '/usr/bin/google-chrome-stable',
-                headless: true, // დააბრუნეთ 'true' - ხანდახან 'new' პრობლემურია ძველ ვერსიებზე
+                headless: true,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -37,11 +36,7 @@ io.on('connection', (socket) => {
                     '--disable-accelerated-2d-canvas',
                     '--no-first-run',
                     '--no-zygote',
-                    '--single-process',
                     '--disable-gpu',
-                    '--user-data-dir=/tmp/puppeteer_user_data', // მითითებულია კონკრეტული ფოლდერი
-                    '--disable-software-rasterizer', // ამცირებს CPU დატვირთვას
-                    '--mute-audio',
                     '--disable-extensions'
                 ],
                 // დაამატეთ ეს ხაზი, რათა თავიდან ავიცილოთ timeout ერორები ნელი ჩატვირთვისას
@@ -104,7 +99,7 @@ io.on('connection', (socket) => {
 });
 
 // პორტის და ჰოსტის დინამიური მინიჭება Render-ისთვის
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`სერვერი გაეშვა პორტზე: ${PORT}`);
 });
