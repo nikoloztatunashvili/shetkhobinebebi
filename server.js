@@ -77,21 +77,61 @@ io.on('connection', (socket) => {
         }
 
         socket.emit('log', '⏳ დაგზავნა იწყება...');
+        const greetings = [
+            'გამარჯობა',
+            'მოგესალმებით',
+            'სალამი',
+            'დღე მშვიდობისა',
+            'მშვიდობიანი დღე',
+            'სასიამოვნო დღეს გისურვებთ',
+            'წარმატებულ დღეს გისურვებთ',
+            'მშვიდობიან დღეს გისურვებთ',
+            'პოზიტიურ დღეს გისურვებთ',
+            'ნაყოფიერ დღეს გისურვებთ',
+            'კარგ დღეს გისურვებთ',
+            'ბედნიერ დღეს გისურვებთ',
+            'გულითადად მოგესალმებით',
+            'პატივისცემით მოგესალმებით',
+            'კეთილი სურვილებით მოგესალმებით',
+            'დიდი სიამოვნებით მოგესალმებით',
+            'თბილად მოგესალმებით',
+            'გისურვებთ წარმატებულ დღეს',
+            'გისურვებთ მშვიდობიან დღეს',
+            'გისურვებთ სასიამოვნო დღეს'
+        ];
 
         for (let number of numbers) {
             let cleanNumber = number.toString().replace(/\D/g, ''); 
             if (!cleanNumber) continue;
             
             const chatId = `${cleanNumber}@c.us`;
-            
+            let recipientName = '';
+
             try {
-                await client.sendMessage(chatId, text);
+                const contact = await client.getContactById(chatId);
+                const rawName = contact.pushname || contact.name || '';
+                
+                // ვამოწმებთ, რომ სახელი შეიცავს მინიმუმ 1 ქართულ ან ლათინურ ასოს და არ არის სიმბოლოები
+                if (/^[a-zA-Zა-ჰ\s]{1,50}$/.test(rawName.trim())) {
+                    recipientName = rawName.trim().split(/\s+/)[0];
+                }
+            } catch (e) {
+                // თუ კონტაქტის წამოღება ვერ მოხერხდა, ვაგრძელებთ სახელის გარეშე
+            }
+
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            const prefix = recipientName ? `${randomGreeting} ${recipientName},` : `${randomGreeting},`;
+            const finalMessage = `${prefix}\n${text}`;
+
+            try {
+                await client.sendMessage(chatId, finalMessage);
                 socket.emit('log', `✅ გაიგზავნა: ${cleanNumber}`);
             } catch (error) {
                 socket.emit('log', `❌ შეცდომა (${cleanNumber}): ${error.message}`);
             }
             
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            const randomDelay = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+            await new Promise(resolve => setTimeout(resolve, randomDelay));
         }
         
         socket.emit('log', '🎉 დაგზავნის პროცესი დასრულებულია!');
