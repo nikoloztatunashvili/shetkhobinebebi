@@ -15,6 +15,8 @@
         
         .btn-blue { background: #007aff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; flex: 1; }
         .btn-blue:hover { background: #005bb5; }
+        .btn-red { background: #e24b4b; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-red:hover { background: #c53737; }
 
         textarea, input[type="file"] { width: 100%; margin-top: 10px; box-sizing: border-box; }
         textarea { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; }
@@ -31,7 +33,10 @@
     <!-- ავტორიზაციის სექცია -->
     <div class="section">
         <h3>1. ავტორიზაცია</h3>
-        <button class="btn-green" onclick="startAuth()" style="width: auto;">QR კოდის გენერაცია</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-green" onclick="startAuth()" style="width: auto;">QR კოდის გენერაცია</button>
+            <button class="btn-red" onclick="logout()" style="width: auto;">გასვლა</button>
+        </div>
         <div class="status" id="authStatus">სტატუსი: არ არის დაკავშირებული</div>
         <img id="qrImage" src="" alt="QR Code">
     </div>
@@ -67,6 +72,12 @@
     function startAuth() {
         socket.emit('start_auth');
         document.getElementById('authStatus').innerText = 'სტატუსი: მუშავდება...';
+    }
+
+    function logout() {
+        socket.emit('logout');
+        document.getElementById('authStatus').innerText = 'სტატუსი: გასვლა...';
+        document.getElementById('qrImage').style.display = 'none';
     }
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -178,6 +189,11 @@
     });
     socket.on('status', (msg) => {
         document.getElementById('authStatus').innerText = 'სტატუსი: ' + msg;
+    });
+    socket.on('logged_out', () => {
+        const img = document.getElementById('qrImage');
+        img.src = '';
+        img.style.display = 'none';
     });
     socket.on('log', (msg) => {
         const logsDiv = document.getElementById('logs');
